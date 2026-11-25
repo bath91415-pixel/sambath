@@ -1,170 +1,48 @@
-
-// ===============================
-// Starbucks Website JavaScript
-// ===============================
-
-const PRICE = 3;
-
-// Cart data
-let cart = {};
-
-// Get HTML elements
-const cartBtn = document.getElementById("cartBtn");
-const cartPanel = document.getElementById("cart");
-const closeCart = document.getElementById("closeCart");
-const clearCart = document.getElementById("clearCart");
-
-const cartList = document.getElementById("cartList");
-const cartCount = document.getElementById("cartCount");
-const cartTotal = document.getElementById("cartTotal");
-
-const burger = document.getElementById("burger");
-const menu = document.getElementById("menu");
-const toast = document.getElementById("toast");
-
-// ===============================
-// Show notification
-// ===============================
-
-function showToast(message) {
-    if (!toast) return;
-
-    toast.textContent = message;
-    toast.classList.add("show");
-
-    setTimeout(() => {
-        toast.classList.remove("show");
-    }, 2000);
+const screens = [...document.querySelectorAll(".screen")];
+function showScreen(id){
+  screens.forEach(s=>s.classList.toggle("active",s.id===id));
+  window.scrollTo({top:0,behavior:"smooth"});
 }
+document.querySelectorAll("[data-go]").forEach(btn=>btn.addEventListener("click",()=>showScreen(btn.dataset.go)));
 
-// ===============================
-// Add product to cart
-// ===============================
+const questions=[
+  "Do I make you smile?",
+  "Am I someone special to you?",
+  "Will you let me spoil you with kindness?",
+  "Do you know how precious you are to me?"
+];
+let questionIndex=0;
+const questionText=document.getElementById("questionText");
+const questionCount=document.getElementById("questionCount");
+const progressBar=document.getElementById("progressBar");
+const meterFill=document.getElementById("meterFill");
+const score=document.getElementById("score");
+const quizMessage=document.getElementById("quizMessage");
 
-document.querySelectorAll(".add").forEach(button => {
-    button.addEventListener("click", () => {
-        const name = button.dataset.name;
-
-        if (!name) return;
-
-        if (cart[name]) {
-            cart[name]++;
-        } else {
-            cart[name] = 1;
-        }
-
-        renderCart();
-        showToast(name + " added to cart!");
-    });
-});
-
-// ===============================
-// Display cart
-// ===============================
-
-function renderCart() {
-    if (!cartList || !cartCount || !cartTotal) return;
-
-    cartList.innerHTML = "";
-
-    let totalItems = 0;
-    let totalPrice = 0;
-
-    for (const name in cart) {
-        const quantity = cart[name];
-
-        totalItems += quantity;
-        totalPrice += quantity * PRICE;
-
-        const li = document.createElement("li");
-
-        const productName = document.createElement("span");
-        productName.textContent = name + " x " + quantity;
-
-        const removeButton = document.createElement("button");
-        removeButton.textContent = "−";
-        removeButton.type = "button";
-        removeButton.setAttribute("aria-label", "Remove one " + name);
-
-        removeButton.addEventListener("click", () => {
-            cart[name]--;
-
-            if (cart[name] <= 0) {
-                delete cart[name];
-            }
-
-            renderCart();
-        });
-
-        li.appendChild(productName);
-        li.appendChild(removeButton);
-
-        cartList.appendChild(li);
-    }
-
-    cartCount.textContent = totalItems;
-    cartTotal.textContent = totalPrice.toFixed(2);
+function renderQuestion(){
+  questionText.textContent=questions[questionIndex];
+  questionCount.textContent=`Question ${questionIndex+1} of ${questions.length}`;
+  progressBar.style.width=`${((questionIndex+1)/questions.length)*100}%`;
 }
-
-// ===============================
-// Open cart
-// ===============================
-
-if (cartBtn && cartPanel) {
-    cartBtn.addEventListener("click", () => {
-        cartPanel.classList.add("open");
-    });
-}
-
-// ===============================
-// Close cart
-// ===============================
-
-if (closeCart && cartPanel) {
-    closeCart.addEventListener("click", () => {
-        cartPanel.classList.remove("open");
-    });
-}
-
-// ===============================
-// Clear cart
-// ===============================
-
-if (clearCart) {
-    clearCart.addEventListener("click", () => {
-        cart = {};
-        renderCart();
-        showToast("Cart cleared!");
-    });
-}
-
-// ===============================
-// Mobile menu
-// ===============================
-
-if (burger && menu) {
-    burger.addEventListener("click", () => {
-        menu.classList.toggle("open");
-    });
-
-    // Close menu after clicking a link
-    menu.querySelectorAll("a").forEach(link => {
-        link.addEventListener("click", () => {
-            menu.classList.remove("open");
-        });
-    });
-}
-
-// ===============================
-// Close cart/menu with Escape
-// ===============================
-
-document.addEventListener("keydown", event => {
-    if (event.key === "Escape") {
-        cartPanel?.classList.remove("open");
-        menu?.classList.remove("open");
-    }
-});
-
-// Initial cart display
-renderCart();
+document.querySelectorAll(".answer").forEach(button=>button.addEventListener("click",()=>{
+  const percent=Math.round(((questionIndex+1)/questions.length)*100);
+  meterFill.style.width=`${percent}%`;
+  score.textContent=`${percent}%`;
+  quizMessage.textContent=["Aww, that's sweet! ♡","My heart is smiling! 💗","You're doing amazing, princess!","I knew you'd pass! 💞"][questionIndex];
+  questionIndex++;
+  if(questionIndex<questions.length){
+    setTimeout(renderQuestion,450);
+  }else{
+    setTimeout(()=>showScreen("passed"),650);
+  }
+}));
+const giftOpened=new Set();
+document.querySelectorAll("[data-gift]").forEach(gift=>gift.addEventListener("click",()=>{
+  const type=gift.dataset.gift;
+  giftOpened.add(type);
+  gift.querySelector("span").textContent="💝";
+  if(type==="bouquet") showScreen("bouquet");
+  if(type==="letter") showScreen("letter");
+  if(type==="promise") showScreen("promise");
+  document.getElementById("giftHint").textContent=`${giftOpened.size} of 3 surprises opened. ♡`;
+}));
